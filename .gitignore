@@ -1,7 +1,6 @@
 */wandb/*
 wandb/*
-*/__pycache__/*
-__pycache__/*
-*/.ipynb_checkpoints/*
-*/__pycache__
+.ipynb_checkpoints
 */saved-outputs/*
+__pycache__
+saved-outputs
