@@ -45,6 +45,7 @@ def main(args):
             gen_state_rng,
         ) = random.split(rng, 5)
 
+        print(f"angle : {args.angle}")
         config = get_config(f"{args.angle}")
 
         config.batch_size = args.batch_size

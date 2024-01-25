@@ -4,3 +4,6 @@ wandb/*
 */saved-outputs/*
 __pycache__
 saved-outputs
+final-saved-outputs
+our-data
+rotmnist_full.pdf
