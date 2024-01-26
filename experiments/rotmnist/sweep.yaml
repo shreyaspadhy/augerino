@@ -1,0 +1,16 @@
+program: experiments/rotmnist/runner.py
+name: augerino
+method: grid
+parameters:
+  batch_size:
+    values: [128]
+  epochs:
+    values: [200]
+  lr:
+    values: [0.01, 0.1, 0.5]
+  aug_reg:
+    values: [0.001, 0.01, 0.1]
+  ncopies:
+    values: [1, 4]
+  angle: 
+    values: [15, 30, 45, 60, 90, 120, 150, 180]

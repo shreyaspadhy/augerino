@@ -10,8 +10,8 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "h5py",
-        "olive-oil-ml @ git+https://github.com/mfinzi/olive-oil-ml",
-        "torchdiffeq @ git+https://github.com/rtqichen/torchdiffeq",
+        # "olive-oil-ml @ git+https://github.com/mfinzi/olive-oil-ml",
+        # "torchdiffeq @ git+https://github.com/rtqichen/torchdiffeq",
     ],  #
     packages=find_packages(),  # ["oil",],#find_packages()
     long_description=open("README.md").read(),

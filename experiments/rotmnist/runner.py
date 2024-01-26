@@ -24,6 +24,7 @@ def main(args):
         project="learning-invariances",
         entity="shreyaspadhy",
         name="",
+        config=args
     ) as run:
         net = smallnet(in_channels=1, num_targets=10)
         augerino = models.UniformAug()
@@ -31,7 +32,7 @@ def main(args):
         init_model = models.AugAveragedModel(net, augerino, ncopies=args.ncopies)
 
         start_widths = torch.ones(6) * -5.0
-        start_widths[2] = 1.0
+        start_widths[2] = -1.0
         model.aug.set_width(start_widths)
 
         softplus = torch.nn.Softplus()
@@ -71,10 +72,10 @@ def main(args):
             model = model.cuda()
             print("Using Cuda")
 
-        ## save init model ##
-        os.makedirs(args.dir, exist_ok=True)
-        init_fname = "/model" + str(args.aug_reg) + "_" + str(args.angle) + "_init.pt"
-        torch.save(model.state_dict(), args.dir + init_fname)
+        # ## save init model ##
+        # os.makedirs(args.dir, exist_ok=True)
+        # init_fname = "/model" + str(args.aug_reg) + "_" + str(args.angle) + "_init.pt"
+        # torch.save(model.state_dict(), args.dir + init_fname)
 
         criterion = losses.safe_unif_aug_loss
         logger = []
@@ -129,7 +130,7 @@ def main(args):
             run.log({"epoch_loss": epoch_loss / batches, "epoch": epoch})
 
         fname = "/model" + str(args.aug_reg) + "_" + str(args.angle) + ".pt"
-        torch.save(model.state_dict(), args.dir + fname)
+        # torch.save(model.state_dict(), args.dir + fname)
         df = pd.DataFrame(logger)
         df.to_pickle(
             args.dir + "/auglog_" + str(args.aug_reg) + "_" + str(args.angle) + ".pkl"
@@ -146,6 +147,12 @@ def main(args):
         angles = torch.linspace(-np.pi, np.pi, n_ang)
 
         four = testimg[ind, ::].unsqueeze(0)
+        fourlab = testlab[ind].numpy()
+        
+        plt.imshow(four[0, 0, ::].cpu().detach(), cmap="Greys", interpolation="nearest")
+        plt.savefig("four.png")
+        print(fourlab)
+
         batch_four = torch.cat(n_ang * [four])
 
         with torch.no_grad():
@@ -173,6 +180,8 @@ def main(args):
             rot_four_new = 2 * rot_four_new - 1
             mid_preds = model(rot_four_new.cuda())
             mid_probs = sftmx(mid_preds.cpu())
+            
+        print(f'mid_probs: {mid_probs.shape}')
 
         tick_pts = [-np.pi, -np.pi / 2, 0, np.pi / 2, np.pi]
         tick_labs = [r"-$\pi$", r"-$\pi$/2", "0", r"$\pi$/2", r"$\pi$"]
@@ -226,7 +235,7 @@ def main(args):
         inner = gridspec.GridSpecFromSubplotSpec(
             2, 3, subplot_spec=outer[0], wspace=0.1, hspace=0.25
         )
-        ind = 42
+
         plot_img(fig, testimg[ind, 0, ::].cpu().detach(), 0, 0, "")
         plot_img(fig, testimg[ind + 1, 0, ::].cpu().detach(), 0, 1, "")
         plot_img(fig, testimg[ind + 2, 0, ::].cpu().detach(), 0, 2, "")
@@ -277,13 +286,13 @@ def main(args):
         )
         ax = plt.Subplot(fig, inner[0])
         alpha = 0.7
-        num = 4
+        num = fourlab
         lwd = 4
         # ax.plot(angles, low_probs[:, num].detach().cpu(), linewidth=lwd, label="Low Reg.",
         #         alpha=alpha, linestyle="-")
         ax.plot(
             angles,
-            mid_probs[:, num].detach().cpu(),
+            mid_probs[:, fourlab].detach().cpu(),
             linewidth=lwd,
             label="Augerino",
             alpha=alpha,
@@ -307,7 +316,7 @@ def main(args):
         )
         sns.despine(ax=ax)
         fig.add_subplot(ax)
-        plt.savefig("./rotmnist_full.pdf", bbox_inches="tight")
+        # plt.savefig("./rotmnist_full.pdf", bbox_inches="tight")
         run.log({"rotmnist_full": wandb.Image(plt)})
 
 
