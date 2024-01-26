@@ -1,5 +1,4 @@
 import argparse
-import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,12 +23,11 @@ def main(args):
         project="learning-invariances",
         entity="shreyaspadhy",
         name="",
-        config=args
+        config=args,
     ) as run:
         net = smallnet(in_channels=1, num_targets=10)
         augerino = models.UniformAug()
         model = models.AugAveragedModel(net, augerino, ncopies=args.ncopies)
-        init_model = models.AugAveragedModel(net, augerino, ncopies=args.ncopies)
 
         start_widths = torch.ones(6) * -5.0
         start_widths[2] = -1.0
@@ -52,9 +50,6 @@ def main(args):
         config.batch_size = args.batch_size
         config.num_epochs = args.epochs
         train_ds, val_ds, _ = get_data(config, data_rng)
-
-        # dataset = datasets.RotMNIST("~/datasets/", train=True)
-        # trainloader = DataLoader(dataset, batch_size=args.batch_size)
 
         optimizer = torch.optim.Adam(
             [
@@ -129,15 +124,16 @@ def main(args):
                 )
             run.log({"epoch_loss": epoch_loss / batches, "epoch": epoch})
 
-        fname = "/model" + str(args.aug_reg) + "_" + str(args.angle) + ".pt"
-        # torch.save(model.state_dict(), args.dir + fname)
+        fname = args.dir + "/model" + str(args.aug_reg) + "_" + str(args.angle) + ".pt"
+        torch.save(model.state_dict(), args.dir + fname)
+
         df = pd.DataFrame(logger)
         df.to_pickle(
             args.dir + "/auglog_" + str(args.aug_reg) + "_" + str(args.angle) + ".pkl"
         )
 
         ######## Do Eval ########
-        dataset = datasets.RotMNIST("~/datasets/", train=False)
+        dataset = datasets.RotMNIST("~/datasets/", train=False, max_rotation=0)
         testloader = DataLoader(dataset, batch_size=128)
         testimg, testlab = next(iter(testloader))
 
@@ -148,10 +144,10 @@ def main(args):
 
         four = testimg[ind, ::].unsqueeze(0)
         fourlab = testlab[ind].numpy()
-        
+
         plt.imshow(four[0, 0, ::].cpu().detach(), cmap="Greys", interpolation="nearest")
-        plt.savefig("four.png")
-        print(fourlab)
+        # plt.savefig("four.png")
+        wandb.log({"test_img": wandb.Image(plt)})
 
         batch_four = torch.cat(n_ang * [four])
 
@@ -180,14 +176,14 @@ def main(args):
             rot_four_new = 2 * rot_four_new - 1
             mid_preds = model(rot_four_new.cuda())
             mid_probs = sftmx(mid_preds.cpu())
-            
-        print(f'mid_probs: {mid_probs.shape}')
+
+        print(f"mid_probs: {mid_probs.shape}")
 
         tick_pts = [-np.pi, -np.pi / 2, 0, np.pi / 2, np.pi]
         tick_labs = [r"-$\pi$", r"-$\pi$/2", "0", r"$\pi$/2", r"$\pi$"]
 
         softplus = torch.nn.Softplus()
-        test_pts = torch.linspace(-2, 2, 10)
+        test_pts = torch.linspace(-2, 2, 100)
 
         def get_density(test_pts, width):
             dist = torch.distributions.Uniform(-width / 2.0, width / 2.0)

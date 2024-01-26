@@ -7,10 +7,12 @@ parameters:
   epochs:
     values: [200]
   lr:
-    values: [0.01, 0.1, 0.5]
+    values: [0.01]
   aug_reg:
-    values: [0.001, 0.01, 0.1]
+    values: [0.1]
   ncopies:
-    values: [1, 4]
+    values: [4]
   angle: 
     values: [15, 30, 45, 60, 90, 120, 150, 180]
+  dir:
+    values: ["/home/sp2058/rds/rds-t2-cs169-UHqJqMFy204/sp2058/augerino_models"]
